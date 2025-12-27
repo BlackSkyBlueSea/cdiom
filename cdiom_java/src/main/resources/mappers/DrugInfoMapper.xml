@@ -2,34 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cdiom.backend.mapper.DrugInfoMapper">
 
-    <!-- 查询药品列表（包含库存信息） -->
-    <select id="selectDrugListWithInventory" resultType="com.cdiom.backend.model.DrugInfo">
-        SELECT DISTINCT d.*
-        FROM drug_info d
-        LEFT JOIN inventory i ON d.id = i.drug_id
-        WHERE d.status = 1
-        <if test="drugName != null and drugName != ''">
-            AND (d.drug_name LIKE CONCAT('%', #{drugName}, '%')
-                 OR d.generic_name LIKE CONCAT('%', #{drugName}, '%'))
-        </if>
-        <if test="category != null and category != ''">
-            AND d.category = #{category}
-        </if>
-        <if test="isSpecialDrug != null">
-            AND d.is_special_drug = #{isSpecialDrug}
-        </if>
-        ORDER BY d.create_time DESC
-    </select>
-
-    <!-- 统计药品分类数量 -->
-    <select id="countByCategory" resultType="map">
-        SELECT category, COUNT(*) as count
-        FROM drug_info
-        WHERE status = 1
-        GROUP BY category
-        ORDER BY count DESC
-    </select>
-
     <!-- 批量更新药品状态 -->
     <update id="batchUpdateStatus">
         UPDATE drug_info
