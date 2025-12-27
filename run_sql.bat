@@ -6,10 +6,22 @@ echo ============================================
 echo.
 
 set MYSQL_PATH=D:\mysql-8.0.37-winx64\bin
-set SQL_FILE=%~dp0cdiom_java\src\main\resources\db\cdiom_schema.sql
 
 echo MySQL路径: %MYSQL_PATH%
-echo SQL文件路径: %SQL_FILE%
+echo.
+echo 可用的SQL脚本文件：
+echo [1] cdiom_schema.sql (标准版)
+echo [2] cdiom_schema_compatible.sql (最大兼容性)
+echo [3] cdiom_schema_mysql8.sql (MySQL 8.0.37优化版 - 推荐)
+echo.
+
+set /p SQL_CHOICE=请选择SQL脚本 (1-3，默认3):
+if "%SQL_CHOICE%"=="1" set SQL_FILE=%~dp0cdiom_java\src\main\resources\db\cdiom_schema.sql
+if "%SQL_CHOICE%"=="2" set SQL_FILE=%~dp0cdiom_java\src\main\resources\db\cdiom_schema_compatible.sql
+if "%SQL_CHOICE%"=="3" set SQL_FILE=%~dp0cdiom_java\src\main\resources\db\cdiom_schema_mysql8.sql
+if "%SQL_CHOICE%"=="" set SQL_FILE=%~dp0cdiom_java\src\main\resources\db\cdiom_schema_mysql8.sql
+
+echo 选择的SQL文件: %SQL_FILE%
 echo.
 
 echo 正在连接到MySQL数据库...
