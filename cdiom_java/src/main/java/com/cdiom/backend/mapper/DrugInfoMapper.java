@@ -51,25 +51,6 @@ public interface DrugInfoMapper extends BaseMapper<DrugInfo> {
     /**
      * 分页查询药品（多条件筛选）
      */
-    @Select("<script>" +
-            "SELECT * FROM drug_info WHERE status = 1 " +
-            "<if test='drugName != null and drugName != \"\"'>" +
-            "AND (drug_name LIKE CONCAT('%', #{drugName}, '%') OR generic_name LIKE CONCAT('%', #{drugName}, '%')) " +
-            "</if>" +
-            "<if test='drugCode != null and drugCode != \"\"'>" +
-            "AND drug_code LIKE CONCAT('%', #{drugCode}, '%') " +
-            "</if>" +
-            "<if test='category != null and category != \"\"'>" +
-            "AND category = #{category} " +
-            "</if>" +
-            "<if test='manufacturer != null and manufacturer != \"\"'>" +
-            "AND manufacturer LIKE CONCAT('%', #{manufacturer}, '%') " +
-            "</if>" +
-            "<if test='isSpecialDrug != null'>" +
-            "AND is_special_drug = #{isSpecialDrug} " +
-            "</if>" +
-            "ORDER BY create_time DESC" +
-            "</script>")
     IPage<DrugInfo> selectPageByConditions(Page<DrugInfo> page,
                                          @Param("drugName") String drugName,
                                          @Param("drugCode") String drugCode,

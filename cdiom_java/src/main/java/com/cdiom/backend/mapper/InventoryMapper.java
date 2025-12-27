@@ -61,20 +61,6 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
     /**
      * 分页查询库存（包含药品信息）
      */
-    @Select("<script>" +
-            "SELECT i.*, d.drug_name, d.drug_code, d.unit, d.category FROM inventory i " +
-            "LEFT JOIN drug_info d ON i.drug_id = d.id WHERE i.status = 1 " +
-            "<if test='drugName != null and drugName != \"\"'>" +
-            "AND d.drug_name LIKE CONCAT('%', #{drugName}, '%') " +
-            "</if>" +
-            "<if test='drugCode != null and drugCode != \"\"'>" +
-            "AND d.drug_code LIKE CONCAT('%', #{drugCode}, '%') " +
-            "</if>" +
-            "<if test='location != null and location != \"\"'>" +
-            "AND i.location LIKE CONCAT('%', #{location}, '%') " +
-            "</if>" +
-            "ORDER BY i.create_time DESC" +
-            "</script>")
     IPage<Inventory> selectPageWithDrugInfo(Page<Inventory> page,
                                           @Param("drugName") String drugName,
                                           @Param("drugCode") String drugCode,

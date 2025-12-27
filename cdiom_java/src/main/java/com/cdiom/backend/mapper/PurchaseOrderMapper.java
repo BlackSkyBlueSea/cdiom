@@ -50,26 +50,6 @@ public interface PurchaseOrderMapper extends BaseMapper<PurchaseOrder> {
     /**
      * 分页查询订单（多条件筛选）
      */
-    @Select("<script>" +
-            "SELECT po.*, u.real_name as approver_name FROM purchase_order po " +
-            "LEFT JOIN sys_user u ON po.approver_id = u.id WHERE 1=1 " +
-            "<if test='orderNumber != null and orderNumber != \"\"'>" +
-            "AND po.order_number LIKE CONCAT('%', #{orderNumber}, '%') " +
-            "</if>" +
-            "<if test='supplier != null and supplier != \"\"'>" +
-            "AND po.supplier LIKE CONCAT('%', #{supplier}, '%') " +
-            "</if>" +
-            "<if test='status != null and status != \"\"'>" +
-            "AND po.status = #{status} " +
-            "</if>" +
-            "<if test='startDate != null'>" +
-            "AND po.order_date >= #{startDate} " +
-            "</if>" +
-            "<if test='endDate != null'>" +
-            "AND po.order_date <= #{endDate} " +
-            "</if>" +
-            "ORDER BY po.order_date DESC" +
-            "</script>")
     IPage<PurchaseOrder> selectPageByConditions(Page<PurchaseOrder> page,
                                               @Param("orderNumber") String orderNumber,
                                               @Param("supplier") String supplier,

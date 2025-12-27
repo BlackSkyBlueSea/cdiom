@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cdiom.backend.mapper.OperationLogMapper">
-    <!-- 此Mapper接口中的方法都使用@Select注解定义，无需XML配置 -->
+
+    <!-- 分页查询操作日志（多条件筛选） -->
+    <select id="selectPageByConditions" resultType="com.cdiom.backend.model.OperationLog">
+        SELECT ol.*, u.real_name as operator_real_name FROM operation_log ol
+        LEFT JOIN sys_user u ON ol.operator_id = u.id WHERE 1=1
+        <if test="operatorName != null and operatorName != ''">
+            AND (ol.operator_name LIKE CONCAT('%', #{operatorName}, '%') OR u.real_name LIKE CONCAT('%', #{operatorName}, '%'))
+        </if>
+        <if test="operationType != null and operationType != ''">
+            AND ol.operation_type = #{operationType}
+        </if>
+        <if test="operationModule != null and operationModule != ''">
+            AND ol.operation_module = #{operationModule}
+        </if>
+        <if test="ipAddress != null and ipAddress != ''">
+            AND ol.ip_address LIKE CONCAT('%', #{ipAddress}, '%')
+        </if>
+        <if test="status != null">
+            AND ol.status = #{status}
+        </if>
+        <if test="startTime != null">
+            AND ol.operation_time >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND ol.operation_time <= #{endTime}
+        </if>
+        ORDER BY ol.operation_time DESC
+    </select>
+
 </mapper>

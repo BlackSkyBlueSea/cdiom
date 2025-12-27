@@ -2,6 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cdiom.backend.mapper.DrugInfoMapper">
 
+    <!-- 分页查询药品（多条件筛选） -->
+    <select id="selectPageByConditions" resultType="com.cdiom.backend.model.DrugInfo">
+        SELECT * FROM drug_info WHERE status = 1
+        <if test="drugName != null and drugName != ''">
+            AND (drug_name LIKE CONCAT('%', #{drugName}, '%')
+                 OR generic_name LIKE CONCAT('%', #{drugName}, '%'))
+        </if>
+        <if test="drugCode != null and drugCode != ''">
+            AND drug_code LIKE CONCAT('%', #{drugCode}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            AND manufacturer LIKE CONCAT('%', #{manufacturer}, '%')
+        </if>
+        <if test="isSpecialDrug != null">
+            AND is_special_drug = #{isSpecialDrug}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
     <!-- 批量更新药品状态 -->
     <update id="batchUpdateStatus">
         UPDATE drug_info

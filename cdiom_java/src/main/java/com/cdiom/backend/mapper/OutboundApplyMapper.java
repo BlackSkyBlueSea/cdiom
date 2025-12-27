@@ -54,33 +54,6 @@ public interface OutboundApplyMapper extends BaseMapper<OutboundApply> {
     /**
      * 分页查询申领单（多条件筛选）
      */
-    @Select("<script>" +
-            "SELECT oa.*, u1.real_name as applicant_name, u2.real_name as approver_name FROM outbound_apply oa " +
-            "LEFT JOIN sys_user u1 ON oa.applicant_id = u1.id " +
-            "LEFT JOIN sys_user u2 ON oa.approver_id = u2.id WHERE 1=1 " +
-            "<if test='applyNumber != null and applyNumber != \"\"'>" +
-            "AND oa.apply_number LIKE CONCAT('%', #{applyNumber}, '%') " +
-            "</if>" +
-            "<if test='applicantName != null and applicantName != \"\"'>" +
-            "AND u1.real_name LIKE CONCAT('%', #{applicantName}, '%') " +
-            "</if>" +
-            "<if test='department != null and department != \"\"'>" +
-            "AND oa.department LIKE CONCAT('%', #{department}, '%') " +
-            "</if>" +
-            "<if test='status != null and status != \"\"'>" +
-            "AND oa.status = #{status} " +
-            "</if>" +
-            "<if test='urgencyLevel != null and urgencyLevel != \"\"'>" +
-            "AND oa.urgency_level = #{urgencyLevel} " +
-            "</if>" +
-            "<if test='startDate != null'>" +
-            "AND oa.apply_date >= #{startDate} " +
-            "</if>" +
-            "<if test='endDate != null'>" +
-            "AND oa.apply_date <= #{endDate} " +
-            "</if>" +
-            "ORDER BY oa.apply_date DESC" +
-            "</script>")
     IPage<OutboundApply> selectPageByConditions(Page<OutboundApply> page,
                                               @Param("applyNumber") String applyNumber,
                                               @Param("applicantName") String applicantName,
