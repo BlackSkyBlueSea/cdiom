@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cdiom.backend.mapper.InventoryMapper">
+
+    <!-- 批量插入库存记录 -->
+    <insert id="insertBatch">
+        INSERT INTO inventory (
+            drug_id, batch_number, quantity, location,
+            expiry_date, warning_quantity, status, create_time, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.drugId}, #{item.batchNumber}, #{item.quantity}, #{item.location},
+                #{item.expiryDate}, #{item.warningQuantity}, #{item.status},
+                #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 更新库存数量 -->
+    <update id="updateQuantity">
+        UPDATE inventory SET
+        quantity = quantity + #{quantityChange},
+        update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新库存数量 -->
+    <update id="updateBatchQuantity">
+        <foreach collection="updates" item="update" separator=";">
+            UPDATE inventory SET
+            quantity = quantity + #{update.quantityChange},
+            update_time = NOW()
+            WHERE drug_id = #{update.drugId} AND batch_number = #{update.batchNumber}
+        </foreach>
+    </update>
+
+    <!-- 高级库存查询 -->
+    <select id="selectAdvancedSearch" resultType="com.cdiom.backend.model.Inventory">
+        SELECT i.*, d.drug_name, d.drug_code, d.unit, d.category
+        FROM inventory i
+        LEFT JOIN drug_info d ON i.drug_id = d.id
+        <where>
+            <if test="drugName != null and drugName != ''">
+                AND d.drug_name LIKE CONCAT('%', #{drugName}, '%')
+            </if>
+            <if test="drugCode != null and drugCode != ''">
+                AND d.drug_code LIKE CONCAT('%', #{drugCode}, '%')
+            </if>
+            <if test="batchNumber != null and batchNumber != ''">
+                AND i.batch_number LIKE CONCAT('%', #{batchNumber}, '%')
+            </if>
+            <if test="location != null and location != ''">
+                AND i.location LIKE CONCAT('%', #{location}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND d.category = #{category}
+            </if>
+            <if test="minQuantity != null">
+                AND i.quantity >= #{minQuantity}
+            </if>
+            <if test="maxQuantity != null">
+                AND i.quantity <![CDATA[<=]]> #{maxQuantity}
+            </if>
+            <if test="isLowStock != null and isLowStock == true">
+                AND i.quantity <![CDATA[<=]]> i.warning_quantity
+            </if>
+            AND i.status = 1
+            AND d.status = 1
+        </where>
+        ORDER BY
+        <choose>
+            <when test="sortField == 'quantity'">
+                i.quantity
+            </when>
+            <when test="sortField == 'expiryDate'">
+                i.expiry_date
+            </when>
+            <when test="sortField == 'drugName'">
+                d.drug_name
+            </when>
+            <otherwise>
+                i.create_time DESC
+            </otherwise>
+        </choose>
+        <if test="sortOrder == 'asc'">
+            ASC
+        </if>
+        <if test="sortOrder == 'desc'">
+            DESC
+        </if>
+    </select>
+
+    <!-- 库存总量统计 -->
+    <select id="selectTotalQuantityByDrug" resultType="map">
+        SELECT drug_id, d.drug_name, d.drug_code, SUM(quantity) as total_quantity
+        FROM inventory i
+        LEFT JOIN drug_info d ON i.drug_id = d.id
+        WHERE i.status = 1 AND d.status = 1
+        GROUP BY drug_id, d.drug_name, d.drug_code
+        ORDER BY total_quantity DESC
+    </select>
+
+    <!-- 库存价值统计 -->
+    <select id="selectInventoryValue" resultType="map">
+        SELECT
+            SUM(i.quantity * d.unit_price) as total_value,
+            COUNT(DISTINCT i.drug_id) as drug_count,
+            SUM(i.quantity) as total_quantity
+        FROM inventory i
+        LEFT JOIN drug_info d ON i.drug_id = d.id
+        WHERE i.status = 1 AND d.status = 1
+    </select>
+
+    <!-- 位置库存统计 -->
+    <select id="selectLocationStatistics" resultType="map">
+        SELECT location, COUNT(*) as record_count, SUM(quantity) as total_quantity
+        FROM inventory
+        WHERE status = 1
+        GROUP BY location
+        ORDER BY total_quantity DESC
+    </select>
+
+    <!-- 预警库存查询（自定义倍数） -->
+    <select id="selectWarningInventory" resultType="com.cdiom.backend.model.Inventory">
+        SELECT i.*, d.drug_name, d.drug_code, d.unit
+        FROM inventory i
+        LEFT JOIN drug_info d ON i.drug_id = d.id
+        WHERE i.quantity <![CDATA[<=]]> (i.warning_quantity * #{warningMultiplier})
+        AND i.status = 1 AND d.status = 1
+        ORDER BY (i.quantity * 1.0 / i.warning_quantity) ASC
+    </select>
+
+    <!-- 删除库存记录（软删除） -->
+    <update id="deleteByDrugAndBatch">
+        UPDATE inventory SET
+        status = 0,
+        update_time = NOW()
+        WHERE drug_id = #{drugId} AND batch_number = #{batchNumber}
+    </update>
+</mapper>

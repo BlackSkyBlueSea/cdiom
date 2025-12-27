@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cdiom.backend.mapper.DrugInfoMapper">
+
+    <!-- 批量插入药品信息 -->
+    <insert id="insertBatch">
+        INSERT INTO drug_info (
+            drug_code, drug_name, generic_name, specification,
+            manufacturer, batch_number, production_date, validity_period,
+            unit, unit_price, category, is_special_drug, storage_condition,
+            description, status, create_time, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.drugCode}, #{item.drugName}, #{item.genericName}, #{item.specification},
+                #{item.manufacturer}, #{item.batchNumber}, #{item.productionDate}, #{item.validityPeriod},
+                #{item.unit}, #{item.unitPrice}, #{item.category}, #{item.isSpecialDrug}, #{item.storageCondition},
+                #{item.description}, #{item.status}, #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据多个ID查询药品信息 -->
+    <select id="selectBatchByIds" resultType="com.cdiom.backend.model.DrugInfo">
+        SELECT * FROM drug_info WHERE id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 高级搜索药品信息 -->
+    <select id="selectAdvancedSearch" resultType="com.cdiom.backend.model.DrugInfo">
+        SELECT * FROM drug_info
+        <where>
+            <if test="drugName != null and drugName != ''">
+                AND (drug_name LIKE CONCAT('%', #{drugName}, '%')
+                     OR generic_name LIKE CONCAT('%', #{drugName}, '%'))
+            </if>
+            <if test="drugCode != null and drugCode != ''">
+                AND drug_code LIKE CONCAT('%', #{drugCode}, '%')
+            </if>
+            <if test="manufacturer != null and manufacturer != ''">
+                AND manufacturer LIKE CONCAT('%', #{manufacturer}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="isSpecialDrug != null">
+                AND is_special_drug = #{isSpecialDrug}
+            </if>
+            <if test="minPrice != null">
+                AND unit_price >= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND unit_price <![CDATA[<=]]> #{maxPrice}
+            </if>
+            <if test="startDate != null">
+                AND validity_period >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND validity_period <![CDATA[<=]]> #{endDate}
+            </if>
+            AND status = 1
+        </where>
+        ORDER BY
+        <choose>
+            <when test="sortField == 'drugName'">
+                drug_name
+            </when>
+            <when test="sortField == 'unitPrice'">
+                unit_price
+            </when>
+            <when test="sortField == 'validityPeriod'">
+                validity_period
+            </when>
+            <otherwise>
+                create_time DESC
+            </otherwise>
+        </choose>
+        <if test="sortOrder == 'asc'">
+            ASC
+        </if>
+        <if test="sortOrder == 'desc'">
+            DESC
+        </if>
+    </select>
+
+    <!-- 统计药品分类数量 -->
+    <select id="selectCategoryStatistics" resultType="map">
+        SELECT category, COUNT(*) as count
+        FROM drug_info
+        WHERE status = 1
+        GROUP BY category
+        ORDER BY count DESC
+    </select>
+
+    <!-- 统计特殊药品数量 -->
+    <select id="selectSpecialDrugCount" resultType="int">
+        SELECT COUNT(*) FROM drug_info WHERE is_special_drug = 1 AND status = 1
+    </select>
+
+    <!-- 统计即将过期药品（自定义天数内） -->
+    <select id="selectExpiringDrugs" resultType="com.cdiom.backend.model.DrugInfo">
+        SELECT * FROM drug_info
+        WHERE validity_period BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL #{days} DAY)
+        AND status = 1
+        ORDER BY validity_period ASC
+    </select>
+
+    <!-- 更新药品状态 -->
+    <update id="updateStatus">
+        UPDATE drug_info SET
+        status = #{status},
+        update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新药品价格 -->
+    <update id="updateBatchPrice">
+        UPDATE drug_info SET
+        unit_price = #{unitPrice},
+        update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+</mapper>
