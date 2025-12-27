@@ -2,183 +2,76 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cdiom.backend.mapper.OperationLogMapper">
 
-    <!-- 批量插入操作日志 -->
-    <insert id="insertBatch">
-        INSERT INTO operation_log (
-            operator_id, operator_name, operation_type, operation_module,
-            operation_description, operation_time, ip_address, user_agent,
-            request_url, request_method, request_params, response_result,
-            execution_time, status, error_message, data_snapshot_before,
-            data_snapshot_after, create_time
-        ) VALUES
-        <foreach collection="list" item="item" separator=",">
-            (
-                #{item.operatorId}, #{item.operatorName}, #{item.operationType}, #{item.operationModule},
-                #{item.operationDescription}, #{item.operationTime}, #{item.ipAddress}, #{item.userAgent},
-                #{item.requestUrl}, #{item.requestMethod}, #{item.requestParams}, #{item.responseResult},
-                #{item.executionTime}, #{item.status}, #{item.errorMessage}, #{item.dataSnapshotBefore},
-                #{item.dataSnapshotAfter}, #{item.createTime}
-            )
-        </foreach>
-    </insert>
-
-    <!-- 高级操作日志查询 -->
-    <select id="selectAdvancedSearch" resultType="com.cdiom.backend.model.OperationLog">
-        SELECT ol.*, u.real_name as operator_real_name
-        FROM operation_log ol
-        LEFT JOIN sys_user u ON ol.operator_id = u.id
-        <where>
-            <if test="operatorName != null and operatorName != ''">
-                AND (ol.operator_name LIKE CONCAT('%', #{operatorName}, '%')
-                     OR u.real_name LIKE CONCAT('%', #{operatorName}, '%'))
-            </if>
-            <if test="operationType != null and operationType != ''">
-                AND ol.operation_type = #{operationType}
-            </if>
-            <if test="operationModule != null and operationModule != ''">
-                AND ol.operation_module = #{operationModule}
-            </if>
-            <if test="ipAddress != null and ipAddress != ''">
-                AND ol.ip_address LIKE CONCAT('%', #{ipAddress}, '%')
-            </if>
-            <if test="requestUrl != null and requestUrl != ''">
-                AND ol.request_url LIKE CONCAT('%', #{requestUrl}, '%')
-            </if>
-            <if test="status != null">
-                AND ol.status = #{status}
-            </if>
-            <if test="minExecutionTime != null">
-                AND ol.execution_time >= #{minExecutionTime}
-            </if>
-            <if test="maxExecutionTime != null">
-                AND ol.execution_time <![CDATA[<=]]> #{maxExecutionTime}
-            </if>
-            <if test="startTime != null">
-                AND ol.operation_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND ol.operation_time <![CDATA[<=]]> #{endTime}
-            </if>
-        </where>
-        ORDER BY ol.operation_time DESC
-    </select>
-
-    <!-- 统计操作类型分布 -->
-    <select id="selectOperationTypeStatistics" resultType="map">
-        SELECT operation_type, COUNT(*) as count
+    <!-- 操作日志统计 -->
+    <select id="selectOperationStatistics" resultType="map">
+        SELECT
+            DATE_FORMAT(operation_time, '%Y-%m-%d') as date,
+            operation_module,
+            operation_type,
+            COUNT(*) as operation_count,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as success_count,
+            COUNT(CASE WHEN status = 0 THEN 1 END) as fail_count,
+            AVG(execution_time) as avg_execution_time
         FROM operation_log
-        <where>
-            <if test="startTime != null">
-                AND operation_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND operation_time <![CDATA[<=]]> #{endTime}
-            </if>
-        </where>
-        GROUP BY operation_type
-        ORDER BY count DESC
+        WHERE operation_time >= #{startDate} AND operation_time <= #{endDate}
+        GROUP BY DATE_FORMAT(operation_time, '%Y-%m-%d'), operation_module, operation_type
+        ORDER BY date DESC, operation_count DESC
     </select>
 
-    <!-- 统计操作模块分布 -->
-    <select id="selectOperationModuleStatistics" resultType="map">
-        SELECT operation_module, COUNT(*) as count
-        FROM operation_log
-        <where>
-            <if test="startTime != null">
-                AND operation_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND operation_time <![CDATA[<=]]> #{endTime}
-            </if>
-        </where>
-        GROUP BY operation_module
-        ORDER BY count DESC
-    </select>
-
-    <!-- 统计操作人活跃度 -->
-    <select id="selectOperatorActivityStatistics" resultType="map">
+    <!-- 用户操作统计 -->
+    <select id="selectUserOperationStatistics" resultType="map">
         SELECT
             operator_id,
             operator_name,
-            COUNT(*) as operation_count,
+            COUNT(*) as total_operations,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as success_operations,
+            COUNT(CASE WHEN status = 0 THEN 1 END) as fail_operations,
             AVG(execution_time) as avg_execution_time,
-            MIN(operation_time) as first_operation_time,
             MAX(operation_time) as last_operation_time
         FROM operation_log
-        <where>
-            <if test="startTime != null">
-                AND operation_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND operation_time <![CDATA[<=]]> #{endTime}
-            </if>
-        </where>
+        WHERE operation_time >= #{startDate} AND operation_time <= #{endDate}
         GROUP BY operator_id, operator_name
-        ORDER BY operation_count DESC
+        ORDER BY total_operations DESC
     </select>
 
-    <!-- 查询执行时间最长的操作 -->
-    <select id="selectSlowOperations" resultType="com.cdiom.backend.model.OperationLog">
-        SELECT ol.*, u.real_name as operator_real_name
-        FROM operation_log ol
-        LEFT JOIN sys_user u ON ol.operator_id = u.id
-        WHERE ol.execution_time >= #{minExecutionTime}
-        <if test="startTime != null">
-            AND ol.operation_time >= #{startTime}
-        </if>
-        <if test="endTime != null">
-            AND ol.operation_time <![CDATA[<=]]> #{endTime}
-        </if>
-        ORDER BY ol.execution_time DESC
-        LIMIT #{limit}
-    </select>
-
-    <!-- 查询频繁失败的操作 -->
-    <select id="selectFailedOperationsStatistics" resultType="map">
+    <!-- 模块操作统计 -->
+    <select id="selectModuleStatistics" resultType="map">
         SELECT
             operation_module,
-            operation_type,
-            COUNT(*) as total_count,
-            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as failed_count,
-            ROUND(SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as failure_rate
+            COUNT(*) as total_operations,
+            COUNT(DISTINCT operator_id) as unique_users,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as success_count,
+            COUNT(CASE WHEN status = 0 THEN 1 END) as fail_count,
+            AVG(execution_time) as avg_execution_time
         FROM operation_log
-        <where>
-            <if test="startTime != null">
-                AND operation_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND operation_time <![CDATA[<=]]> #{endTime}
-            </if>
-        </where>
-        GROUP BY operation_module, operation_type
-        HAVING failed_count > 0
-        ORDER BY failure_rate DESC, total_count DESC
+        WHERE operation_time >= #{startDate} AND operation_time <= #{endDate}
+        GROUP BY operation_module
+        ORDER BY total_operations DESC
     </select>
 
     <!-- 清理过期日志 -->
     <delete id="deleteExpiredLogs">
         DELETE FROM operation_log
-        WHERE operation_time <![CDATA[<]]> DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        WHERE operation_time < #{beforeDate}
+        AND operation_module NOT IN ('AUTH', 'SYSTEM')  <!-- 保留重要日志 -->
     </delete>
 
-    <!-- 按日期统计操作量 -->
-    <select id="selectDailyOperationStatistics" resultType="map">
-        SELECT
-            DATE(operation_time) as operation_date,
-            COUNT(*) as total_operations,
-            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as success_operations,
-            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as failed_operations,
-            AVG(execution_time) as avg_execution_time
-        FROM operation_log
-        <where>
-            <if test="startDate != null">
-                AND DATE(operation_time) >= #{startDate}
-            </if>
-            <if test="endDate != null">
-                AND DATE(operation_time) <![CDATA[<=]]> #{endDate}
-            </if>
-        </where>
-        GROUP BY DATE(operation_time)
-        ORDER BY operation_date DESC
-    </select>
+    <!-- 批量插入操作日志（用于批量操作记录） -->
+    <insert id="batchInsert">
+        INSERT INTO operation_log (
+            operator_id, operator_name, operation_type, operation_module,
+            operation_description, operation_time, ip_address, user_agent,
+            request_url, request_method, request_params, response_result,
+            execution_time, status, error_message, create_time
+        ) VALUES
+        <foreach item="log" collection="logs" separator=",">
+            (
+                #{log.operatorId}, #{log.operatorName}, #{log.operationType}, #{log.operationModule},
+                #{log.operationDescription}, #{log.operationTime}, #{log.ipAddress}, #{log.userAgent},
+                #{log.requestUrl}, #{log.requestMethod}, #{log.requestParams}, #{log.responseResult},
+                #{log.executionTime}, #{log.status}, #{log.errorMessage}, #{log.createTime}
+            )
+        </foreach>
+    </insert>
+
 </mapper>

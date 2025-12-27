@@ -16,54 +16,37 @@ import java.time.LocalDateTime;
 public class MyMetaObjectHandler implements MetaObjectHandler {
 
     /**
-     * 插入操作时的自动填充
+     * 插入时的填充策略
      */
     @Override
     public void insertFill(MetaObject metaObject) {
-        log.debug("开始插入操作自动填充...");
+        log.debug("开始插入填充 ....");
 
-        // 自动填充创建时间
-        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
 
-        // 自动填充更新时间
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        // 填充创建时间
+        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);
 
-        log.debug("插入操作自动填充完成");
+        // 填充更新时间
+        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
+
+        log.debug("插入填充完成 ....");
     }
 
     /**
-     * 更新操作时的自动填充
+     * 更新时的填充策略
      */
     @Override
     public void updateFill(MetaObject metaObject) {
-        log.debug("开始更新操作自动填充...");
+        log.debug("开始更新填充 ....");
 
-        // 自动填充更新时间
-        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
 
-        log.debug("更新操作自动填充完成");
-    }
+        // 填充更新时间
+        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, now);
 
-    /**
-     * 严格的插入填充（字段存在时才填充）
-     */
-    private void strictInsertFill(MetaObject metaObject, String fieldName, Class<?> fieldType, Object fieldVal) {
-        if (metaObject.hasGetter(fieldName) && metaObject.hasSetter(fieldName)) {
-            Object value = this.getFieldValByName(fieldName, metaObject);
-            if (value == null) {
-                this.setFieldValByName(fieldName, fieldVal, metaObject);
-                log.debug("自动填充字段: {}, 值: {}", fieldName, fieldVal);
-            }
-        }
-    }
-
-    /**
-     * 严格的更新填充（字段存在时才填充）
-     */
-    private void strictUpdateFill(MetaObject metaObject, String fieldName, Class<?> fieldType, Object fieldVal) {
-        if (metaObject.hasGetter(fieldName) && metaObject.hasSetter(fieldName)) {
-            this.setFieldValByName(fieldName, fieldVal, metaObject);
-            log.debug("自动填充字段: {}, 值: {}", fieldName, fieldVal);
-        }
+        log.debug("更新填充完成 ....");
     }
 }
