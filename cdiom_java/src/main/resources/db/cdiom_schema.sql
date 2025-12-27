@@ -1,16 +1,26 @@
+-- ============================================
 -- CDIOM医药管理系统数据库脚本
--- 版本：1.0.0
+-- 版本：1.0.1 (修复字符编码问题)
 -- 创建时间：2025-12-27
+-- 字符编码：UTF-8
+-- ============================================
+
+-- 设置字符编码
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS cdiom_db
-CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+DROP DATABASE IF EXISTS cdiom_db;
+CREATE DATABASE cdiom_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci
+COMMENT 'CDIOM医药管理系统数据库';
 
 USE cdiom_db;
 
--- =============================================
+-- ============================================
 -- 1. 角色表 (sys_role)
--- =============================================
+-- ============================================
 CREATE TABLE sys_role (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '角色ID',
     role_code VARCHAR(50) NOT NULL UNIQUE COMMENT '角色编码',
@@ -19,11 +29,11 @@ CREATE TABLE sys_role (
     status TINYINT DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-) COMMENT '角色表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色表';
 
--- =============================================
+-- ============================================
 -- 2. 用户表 (sys_user)
--- =============================================
+-- ============================================
 CREATE TABLE sys_user (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
@@ -37,11 +47,11 @@ CREATE TABLE sys_user (
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (role_id) REFERENCES sys_role(id)
-) COMMENT '用户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
--- =============================================
+-- ============================================
 -- 3. 药品信息表 (drug_info)
--- =============================================
+-- ============================================
 CREATE TABLE drug_info (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '药品ID',
     drug_code VARCHAR(50) NOT NULL UNIQUE COMMENT '药品编码',
@@ -61,11 +71,11 @@ CREATE TABLE drug_info (
     status TINYINT DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-) COMMENT '药品信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='药品信息表';
 
--- =============================================
+-- ============================================
 -- 4. 库存表 (inventory)
--- =============================================
+-- ============================================
 CREATE TABLE inventory (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '库存ID',
     drug_id BIGINT NOT NULL COMMENT '药品ID',
@@ -79,11 +89,11 @@ CREATE TABLE inventory (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (drug_id) REFERENCES drug_info(id),
     UNIQUE KEY uk_inventory_drug_batch (drug_id, batch_number)
-) COMMENT '库存表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='库存表';
 
--- =============================================
+-- ============================================
 -- 5. 采购订单表 (purchase_order)
--- =============================================
+-- ============================================
 CREATE TABLE purchase_order (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '订单ID',
     order_number VARCHAR(50) NOT NULL UNIQUE COMMENT '订单号',
@@ -98,11 +108,11 @@ CREATE TABLE purchase_order (
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (approver_id) REFERENCES sys_user(id)
-) COMMENT '采购订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='采购订单表';
 
--- =============================================
+-- ============================================
 -- 6. 采购订单明细表 (purchase_order_item)
--- =============================================
+-- ============================================
 CREATE TABLE purchase_order_item (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '明细ID',
     order_id BIGINT NOT NULL COMMENT '订单ID',
@@ -115,11 +125,11 @@ CREATE TABLE purchase_order_item (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (order_id) REFERENCES purchase_order(id),
     FOREIGN KEY (drug_id) REFERENCES drug_info(id)
-) COMMENT '采购订单明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='采购订单明细表';
 
--- =============================================
+-- ============================================
 -- 7. 出库申领表 (outbound_apply)
--- =============================================
+-- ============================================
 CREATE TABLE outbound_apply (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '申领ID',
     apply_number VARCHAR(50) NOT NULL UNIQUE COMMENT '申领单号',
@@ -138,11 +148,11 @@ CREATE TABLE outbound_apply (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (applicant_id) REFERENCES sys_user(id),
     FOREIGN KEY (approver_id) REFERENCES sys_user(id)
-) COMMENT '出库申领表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='出库申领表';
 
--- =============================================
+-- ============================================
 -- 8. 出库申领明细表 (outbound_apply_item)
--- =============================================
+-- ============================================
 CREATE TABLE outbound_apply_item (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '明细ID',
     apply_id BIGINT NOT NULL COMMENT '申领ID',
@@ -156,11 +166,11 @@ CREATE TABLE outbound_apply_item (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (apply_id) REFERENCES outbound_apply(id),
     FOREIGN KEY (drug_id) REFERENCES drug_info(id)
-) COMMENT '出库申领明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='出库申领明细表';
 
--- =============================================
+-- ============================================
 -- 9. 操作日志表 (operation_log)
--- =============================================
+-- ============================================
 CREATE TABLE operation_log (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
     operator_id BIGINT NOT NULL COMMENT '操作人ID',
@@ -181,11 +191,11 @@ CREATE TABLE operation_log (
     data_snapshot_before TEXT COMMENT '操作前数据快照',
     data_snapshot_after TEXT COMMENT '操作后数据快照',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
-) COMMENT '操作日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作日志表';
 
--- =============================================
+-- ============================================
 -- 插入测试数据
--- =============================================
+-- ============================================
 
 -- 插入角色数据
 INSERT INTO sys_role (role_code, role_name, description, status) VALUES
@@ -242,7 +252,9 @@ INSERT INTO operation_log (operator_id, operator_name, operation_type, operation
 (2, '仓库管理员', 'CREATE', 'INVENTORY', '新增库存记录', '2025-12-27 10:30:00', '192.168.1.101', 'POST', '/api/v1/inventory', 1, 200),
 (3, '张医生', 'CREATE', 'OUTBOUND_APPLY', '提交药品申领申请', '2025-12-27 11:15:00', '192.168.1.102', 'POST', '/api/v1/outbound/apply', 1, 180);
 
+-- ============================================
 -- 创建索引以提升查询性能
+-- ============================================
 CREATE INDEX idx_sys_user_username ON sys_user(username);
 CREATE INDEX idx_sys_user_role_id ON sys_user(role_id);
 CREATE INDEX idx_drug_info_drug_code ON drug_info(drug_code);
@@ -255,3 +267,9 @@ CREATE INDEX idx_outbound_apply_applicant ON outbound_apply(applicant_id);
 CREATE INDEX idx_operation_log_operator ON operation_log(operator_id);
 CREATE INDEX idx_operation_log_time ON operation_log(operation_time);
 CREATE INDEX idx_operation_log_type ON operation_log(operation_type, operation_module);
+
+-- ============================================
+-- 显示创建结果
+-- ============================================
+SELECT 'Database cdiom_db created successfully!' as result;
+SHOW TABLES;
