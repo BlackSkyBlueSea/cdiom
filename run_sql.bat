@@ -50,6 +50,15 @@ if %ERRORLEVEL% EQU 0 (
     echo - 用户账号: doctor/123456 (医护人员)
     echo - 药品数据: 5条测试记录
     echo - 库存数据: 对应5条药品的库存信息
+    echo.
+    echo 正在运行数据库验证...
+    echo.
+    "%MYSQL_PATH%\mysql.exe" --default-character-set=utf8mb4 -u %MYSQL_USER% -p%MYSQL_PASS% cdiom_db < "%~dp0verify_db.sql"
+    echo.
+    echo ============================================
+    echo 🎉 数据库初始化和验证完成！
+    echo 现在可以启动Spring Boot应用进行测试
+    echo ============================================
 ) else (
     echo.
     echo ❌ SQL脚本执行失败！
