@@ -51,6 +51,7 @@ public interface DrugInfoMapper extends BaseMapper<DrugInfo> {
     /**
      * 分页查询药品（多条件筛选）
      */
+    @Select("SELECT * FROM drug_info WHERE status = 1 ORDER BY create_time DESC")
     IPage<DrugInfo> selectPageByConditions(Page<DrugInfo> page,
                                          @Param("drugName") String drugName,
                                          @Param("drugCode") String drugCode,

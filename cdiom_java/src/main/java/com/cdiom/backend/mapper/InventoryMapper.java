@@ -61,6 +61,8 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
     /**
      * 分页查询库存（包含药品信息）
      */
+    @Select("SELECT i.*, d.drug_name, d.drug_code, d.unit, d.category FROM inventory i " +
+            "LEFT JOIN drug_info d ON i.drug_id = d.id WHERE i.status = 1 ORDER BY i.create_time DESC")
     IPage<Inventory> selectPageWithDrugInfo(Page<Inventory> page,
                                           @Param("drugName") String drugName,
                                           @Param("drugCode") String drugCode,

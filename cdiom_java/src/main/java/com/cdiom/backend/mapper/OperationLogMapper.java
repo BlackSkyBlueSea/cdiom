@@ -46,6 +46,8 @@ public interface OperationLogMapper extends BaseMapper<OperationLog> {
     /**
      * 分页查询操作日志（多条件筛选）
      */
+    @Select("SELECT ol.*, u.real_name as operator_real_name FROM operation_log ol " +
+            "LEFT JOIN sys_user u ON ol.operator_id = u.id ORDER BY ol.operation_time DESC")
     IPage<OperationLog> selectPageByConditions(Page<OperationLog> page,
                                              @Param("operatorName") String operatorName,
                                              @Param("operationType") String operationType,

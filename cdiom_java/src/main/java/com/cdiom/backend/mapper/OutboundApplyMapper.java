@@ -54,6 +54,9 @@ public interface OutboundApplyMapper extends BaseMapper<OutboundApply> {
     /**
      * 分页查询申领单（多条件筛选）
      */
+    @Select("SELECT oa.*, u1.real_name as applicant_name, u2.real_name as approver_name FROM outbound_apply oa " +
+            "LEFT JOIN sys_user u1 ON oa.applicant_id = u1.id " +
+            "LEFT JOIN sys_user u2 ON oa.approver_id = u2.id ORDER BY oa.apply_date DESC")
     IPage<OutboundApply> selectPageByConditions(Page<OutboundApply> page,
                                               @Param("applyNumber") String applyNumber,
                                               @Param("applicantName") String applicantName,

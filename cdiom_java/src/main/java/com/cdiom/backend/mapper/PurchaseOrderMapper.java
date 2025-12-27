@@ -50,6 +50,8 @@ public interface PurchaseOrderMapper extends BaseMapper<PurchaseOrder> {
     /**
      * 分页查询订单（多条件筛选）
      */
+    @Select("SELECT po.*, u.real_name as approver_name FROM purchase_order po " +
+            "LEFT JOIN sys_user u ON po.approver_id = u.id ORDER BY po.order_date DESC")
     IPage<PurchaseOrder> selectPageByConditions(Page<PurchaseOrder> page,
                                               @Param("orderNumber") String orderNumber,
                                               @Param("supplier") String supplier,
