@@ -23,7 +23,7 @@ set /p MYSQL_PASS=请输入MySQL密码:
 
 echo.
 echo 正在创建数据库...
-"%MYSQL_PATH%\mysql.exe" --default-character-set=utf8mb4 -u %MYSQL_USER% -p%MYSQL_PASS% -e "DROP DATABASE IF EXISTS cdiom_db; CREATE DATABASE cdiom_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'CDIOM医药管理系统数据库';"
+"%MYSQL_PATH%\mysql.exe" --default-character-set=utf8mb4 -u %MYSQL_USER% -p%MYSQL_PASS% -e "DROP DATABASE IF EXISTS cdiom_db; CREATE DATABASE cdiom_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 if %ERRORLEVEL% NEQ 0 (
     echo.

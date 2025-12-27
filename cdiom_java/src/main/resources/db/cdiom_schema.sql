@@ -13,8 +13,7 @@ SET CHARACTER SET utf8mb4;
 DROP DATABASE IF EXISTS cdiom_db;
 CREATE DATABASE cdiom_db
 CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci
-COMMENT 'CDIOM医药管理系统数据库';
+COLLATE utf8mb4_unicode_ci;
 
 USE cdiom_db;
 
