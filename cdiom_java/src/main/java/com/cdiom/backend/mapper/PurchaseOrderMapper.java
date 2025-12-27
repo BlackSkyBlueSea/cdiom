@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Select;
 import java.time.LocalDate;
 import java.util.List;
 
+@Mapper
 public interface PurchaseOrderMapper extends BaseMapper<PurchaseOrder> {
 
     /**
