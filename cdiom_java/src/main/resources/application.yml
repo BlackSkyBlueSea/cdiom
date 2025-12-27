@@ -33,7 +33,6 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
     meta-object-handler: com.cdiom.backend.config.MyMetaObjectHandler
-  mapper-locations: classpath*:mappers/*.xml
   type-aliases-package: com.cdiom.backend.model
 
 jwt:
