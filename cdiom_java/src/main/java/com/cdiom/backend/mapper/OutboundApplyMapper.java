@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cdiom.backend.model.OutboundApply;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Mapper
 public interface OutboundApplyMapper extends BaseMapper<OutboundApply> {
 
     /**
