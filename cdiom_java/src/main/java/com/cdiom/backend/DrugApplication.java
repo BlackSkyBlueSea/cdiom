@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * 启动类
+ * CDIOM医药管理系统启动类
  *
  * @author cdiom
  */
@@ -17,5 +17,3 @@ public class DrugApplication {
         SpringApplication.run(DrugApplication.class, args);
     }
 }
-
-
