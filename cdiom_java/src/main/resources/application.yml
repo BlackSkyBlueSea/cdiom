@@ -1,7 +1,6 @@
 server:
   port: 8080
   servlet:
-    context-path: /api/v1
     encoding:
       charset: UTF-8
       enabled: true
@@ -10,6 +9,9 @@ server:
 spring:
   application:
     name: cdiom_java
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.sql.init.SqlInitializationAutoConfiguration
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/cdiom_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
@@ -33,20 +35,17 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
   type-aliases-package: com.cdiom.backend.model
+  mapper-locations: classpath*:mappers/*.xml
 
+# JWT配置
 jwt:
-  secret: cdiom-jwt-secret-key-2024-please-change-in-production-this-key-must-be-at-least-512-bits-for-hs512-algorithm-security-requirements
-  expiration: 28800000
-
-compliance:
-  expiry-threshold-days: 180
-  log-retention-days: 1825
+  secret: cdiom-secret-key-for-jwt-token-generation-minimum-32-characters
+  expiration: 28800000  # 8小时（毫秒）
 
 logging:
   level:
     root: INFO
     com.cdiom.backend: DEBUG
-    org.springframework.security: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
